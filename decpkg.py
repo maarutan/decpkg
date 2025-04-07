@@ -27,7 +27,6 @@ import os
 import subprocess
 import argcomplete
 import yaml
-import toml
 import pathlib
 import argparse
 import shutil
@@ -38,10 +37,8 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 HOME = pathlib.Path.home()
-HERE_YML = pathlib.Path(__file__).parent / "config.yml"
 CONFIG_DIR = f"{HOME}/.config/DeclarativePackage"
-CONFIG_YML = f"{CONFIG_DIR}/config.yml"
-RELATIVE_JSON = f"{CONFIG_DIR}/relative.json"
+CONFIG_JSON = f"{CONFIG_DIR}/config.jsonc"
 
 NAME = "decpkg"
 VERSION = "0.1.0"
@@ -194,7 +191,7 @@ class DecpkgSync:
                 default_skilet = {"pacman": [], "aur": []}
                 json.dump(default_skilet, f, indent=2)
 
-            with open(CONFIG_YML, "r") as f:
+            with open(CONFIG_JSON, "r") as f:
                 content = yaml.safe_load(f)
 
             pacman = content.get("pacman", [])
@@ -210,8 +207,8 @@ class DecpkgSync:
         yaml = YAML()
         yaml.preserve_quotes = True
 
-        if pathlib.Path(CONFIG_YML).exists():
-            with open(CONFIG_YML, "r") as f:
+        if pathlib.Path(CONFIG_JSON).exists():
+            with open(CONFIG_JSON, "r") as f:
                 existing_data = yaml.load(f) or {}
         else:
             existing_data = CommentedMap()
@@ -220,7 +217,7 @@ class DecpkgSync:
 
         pathlib.Path(CONFIG_DIR).mkdir(exist_ok=True)
 
-        with open(CONFIG_YML, "w") as f:
+        with open(CONFIG_JSON, "w") as f:
             yaml.dump(existing_data, f)
 
     def sync_handler(self):
@@ -244,7 +241,7 @@ class DecpkgSync:
 
     def read_config(self):  # type: ignore
         yaml = YAML()
-        with open(CONFIG_YML, "r") as f:
+        with open(CONFIG_JSON, "r") as f:
             return yaml.load(f)
 
     def check_relative_sync(self):  # type: ignore
@@ -256,7 +253,7 @@ class DecpkgSync:
         return absolute_sync == True
 
     def read_config(self):
-        with open(CONFIG_YML, "r") as f:
+        with open(CONFIG_JSON, "r") as f:
             return yaml.safe_load(f)
 
     def check_relative_sync(self):
@@ -270,61 +267,66 @@ class DecpkgSync:
 
 class GenerateConfigure:
     def __init__(self) -> None:
-        if not pathlib.Path(CONFIG_YML).exists():
+        if not pathlib.Path(CONFIG_JSON).exists():
             self.write_config()
-            print(f"{YELLOW}configure file: {CONFIG_YML} {MAGENTA}created :D")
+            print(f"{YELLOW}configure file: {CONFIG_JSON} {MAGENTA}created :D")
         else:
             self.handle_existing_config()
 
     def config_here(self):
-        default_config = """ 
-# ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
-# ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
-# ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
-# ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
-# ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
-#  ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
-#  ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
-#  ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
-#    ░       ░  ░░ ░               ░  ░         ░
-#  ░             ░
-#
-# (Copyright (c) 2025 maaru.tan \\ Marat Arzymatov. All Rights Reserved.)
-# https://github.com/maarutan/decpkg 
-#
-# ------------------------------------------------
-#
-# Startup
-absolute_sync: false # absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
-relative_sync: true # Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
-#
-# Updates package
-update_pkg_with_install: false # You can upgrade your system before you start installing your packages.
-update_counter: false # If you choose to update the system before installation you can see the number of updates. 
-#
-# set root
-use_root: "sudo"  # To install packages you need to have super user rights in order to install them. 
-#
-aur_helper: "paru" # Better aur helper utils.
-noconfirm : true # If that's true, then the packets will settle without confirmation.  
-#
-# Other 
-notify: false # If you want to be notified.
-#
-# install the package using declarative.
-pacman:
-  # - git         # Popular utelita for version control.
-  # - neovim      # Best text editor.
-#
-# install your package from Arch User Repository.
-aur:
-  # - peaclock    # Utelita for look clock.
-  # - unimatrix   # Huckers background.
+        default_config = """[
+  //  ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
+  //  ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
+  //  ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
+  //  ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
+  //  ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
+  //   ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
+  //   ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
+  //   ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
+  //     ░       ░  ░░ ░               ░  ░         ░
+  //   ░             ░
+  //
+  //  (Copyright (c) 2025 maaru.tan \\ Marat Arzymatov. All Rights Reserved.)
+  //  https://github.com/maarutan/decpkg 
+  //
+  //  ------------------------------------------------
+  {
+    // Startup
+    "absolute_sync": false, // absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
+    "relative_sync": true,  // Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
+    "noconfirm" : true, // If that's true, then the packets will settle without confirmation.  
+
+    // Updates package
+    "update_pkg_with_install": false, // You can upgrade your system before you start installing your packages.
+    "update_counter": false, // If you choose to update the system before installation you can see the number of updates. 
+
+    // set root
+    "use_root": "sudo",  // To install packages you need to have super user rights in order to install them. 
+
+    // aur 
+    "aur_helper": "paru", // Better aur helper utils.
+
+    // other
+    "notify": false // If you want to be notified.
+  },
+  {
+    "pacman": [
+      // "git",          // Popular utelita for version control.
+      // "neovim"        // Best text editor.
+    ]
+  },
+  {
+    "aur": [
+      //  "peaclock",    // Utelita for look clock.
+      //  "unimatrix"    // Huckers background.
+    ]
+  }
+]
         """
         return default_config
 
     def write_config(self):
-        config_path = pathlib.Path(CONFIG_YML)
+        config_path = pathlib.Path(CONFIG_JSON)
 
         if config_path.exists():
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -338,7 +340,7 @@ aur:
     def handle_existing_config(self):
         ask = (
             input(
-                f"{YELLOW}configure file: {CONFIG_YML} {MAGENTA}now exists\n"
+                f"{YELLOW}configure file: {CONFIG_JSON} {MAGENTA}now exists\n"
                 f"{CYAN}~~~ Do you want to replace? [ ( y/N ) ]\n ~> : "
             )
             .strip()
