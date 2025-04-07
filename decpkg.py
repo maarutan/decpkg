@@ -43,7 +43,9 @@ CONFIG_DIR = f"{HOME}/.config/DeclarativePackage"
 CONFIG_YML = f"{CONFIG_DIR}/config.yml"
 RELATIVE_JSON = f"{CONFIG_DIR}/relative.json"
 
-SETUP_TOML = pathlib.Path(__file__).parent / "pyproject.toml"
+NAME = "decpkg"
+VERSION = "0.1.0"
+REQUIRES = "> 3.13.2"
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
@@ -478,13 +480,9 @@ class Version:
 ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
     """
         )
-
-        with open(SETUP_TOML, "r") as f:
-            config = toml.load(f)
-
-        print(f"  ~~~>  Name: {config['project']['name']}")
-        print(f"  ~~~>  Version: {config['project']['version']}")
-        print(f"  ~~~>  Requires Python: {config['project']['requires-python']}")
+        print(f"  ~~~>  Name: {NAME}")
+        print(f"  ~~~>  Version: {VERSION}")
+        print(f"  ~~~>  Requires Python: {REQUIRES} ")
 
     def pacman_version(self, V: bool = True):
         subprocess.check_call(["pacman", "-V"]) if V else subprocess.check_call(
