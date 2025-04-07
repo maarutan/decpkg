@@ -32,11 +32,13 @@ import pathlib
 import argparse
 import shutil
 import json
+import datetime
 
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 HOME = pathlib.Path.home()
+HERE_YML = pathlib.Path(__file__).parent / "config.yml"
 CONFIG_DIR = f"{HOME}/.config/DeclarativePackage"
 CONFIG_YML = f"{CONFIG_DIR}/config.yml"
 RELATIVE_JSON = f"{CONFIG_DIR}/relative.json"
@@ -170,8 +172,8 @@ class DecpkgSync:
         return aur
 
     def set_noconfirm(self) -> str:
-        noconfirm = self.read_config().get("noconfirm", "false")
-        noconfirm = noconfirm.lower() == "true"
+        noconfirm = self.read_config().get("noconfirm", False)
+        noconfirm = noconfirm == True
         return "--noconfirm" if noconfirm else ""
 
     def root_status(self) -> str:
@@ -244,100 +246,111 @@ class DecpkgSync:
             return yaml.load(f)
 
     def check_relative_sync(self):  # type: ignore
-        relative_sync = self.read_config().get("relative_sync", "false")
-        return relative_sync.lower() == "true"
+        relative_sync = self.read_config().get("relative_sync", False)
+        return relative_sync == True
 
     def check_absolute_sync(self):  # type: ignore
-        absolute_sync = self.read_config().get("absolute_sync", "false")
-        return absolute_sync.lower() == "true"
+        absolute_sync = self.read_config().get("absolute_sync", False)
+        return absolute_sync == True
 
     def read_config(self):
         with open(CONFIG_YML, "r") as f:
             return yaml.safe_load(f)
 
     def check_relative_sync(self):
-        relative_sync = self.read_config().get("relative_sync", "false")
-        return relative_sync.lower() == "true"
+        relative_sync = self.read_config().get("relative_sync", False)
+        return relative_sync == True
 
     def check_absolute_sync(self):
-        absolute_sync = self.read_config().get("absolute_sync", "false")
-        return absolute_sync.lower() == "true"
+        absolute_sync = self.read_config().get("absolute_sync", False)
+        return absolute_sync == True
 
 
 class GenerateConfigure:
-    def __init__(self, config_dir: str = CONFIG_DIR) -> None:
-        self.config_dir = config_dir
-        self.content()
-
-    def write_configure(self, data: CommentedMap):
-        pathlib.Path(self.config_dir).mkdir(exist_ok=True)
-        yaml = YAML()
-        yaml.indent(mapping=4, sequence=4, offset=2)
-        with open(CONFIG_YML, "w") as f:
-            yaml.dump(data, f)
-
-    def content(self):
-        data = CommentedMap()
-
-        data["noconfirm"] = "false"
-        data.yaml_set_comment_before_after_key(
-            "noconfirm",
-            before="no confirm ???  'true' / 'false' ",
-        )
-
-        data["absolute_sync"] = "false"
-        data.yaml_set_comment_before_after_key(
-            "absolute_sync",
-            before="if you use absolute_sync because auto remove auto sync only how to that config",
-        )
-
-        data["relative_sync"] = "true"
-        data.yaml_set_comment_before_after_key(
-            "relative_sync",
-            before="if you use relative_sync because not auto and auto sync but not absolute",
-        )
-
-        data["doas"] = "false"
-        data.yaml_set_comment_before_after_key(
-            "doas", before="if you use doas true sudo false"
-        )
-
-        data["sudo"] = "true"
-        data.yaml_set_comment_before_after_key(
-            "sudo", before="if you use sudo true doas false"
-        )
-
-        data["favorite_aur_helper"] = "paru"
-        data.yaml_set_comment_before_after_key(
-            "favorite_aur_helper", before="your favorite helper yay or paru"
-        )
-
-        data["pacman"] = ["git"]
-        data.yaml_set_comment_before_after_key(
-            "pacman", before="sudo pacman -S and your package"
-        )
-
-        data["AUR-helper"] = ["pfetch"]
-        data.yaml_set_comment_before_after_key(
-            "AUR-helper", before="your favorite helper and sync package"
-        )
-
+    def __init__(self) -> None:
         if not pathlib.Path(CONFIG_YML).exists():
-            self.write_configure(data)
+            self.write_config()
             print(f"{YELLOW}configure file: {CONFIG_YML} {MAGENTA}created :D")
         else:
-            ask = input(
-                f"{YELLOW}configure file: {CONFIG_YML} {MAGENTA}now exists\n {CYAN}~~~ Do you want to replace? [ ( y/N )\n ~> : "
+            self.handle_existing_config()
+
+    def config_here(self):
+        default_config = """ 
+# ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
+# ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
+# ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
+# ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
+# ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
+#  ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
+#  ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
+#  ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
+#    ░       ░  ░░ ░               ░  ░         ░
+#  ░             ░
+#
+# (Copyright (c) 2025 maaru.tan \\ Marat Arzymatov. All Rights Reserved.)
+# https://github.com/maarutan/decpkg 
+#
+# ------------------------------------------------
+#
+# Startup
+absolute_sync: false # absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
+relative_sync: true # Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
+#
+# Updates package
+update_pkg_with_install: false # You can upgrade your system before you start installing your packages.
+update_counter: false # If you choose to update the system before installation you can see the number of updates. 
+#
+# set root
+use_root: "sudo"  # To install packages you need to have super user rights in order to install them. 
+#
+aur_helper: "paru" # Better aur helper utils.
+noconfirm : true # If that's true, then the packets will settle without confirmation.  
+#
+# Other 
+notify: false # If you want to be notified.
+#
+# install the package using declarative.
+pacman:
+  # - git         # Popular utelita for version control.
+  # - neovim      # Best text editor.
+#
+# install your package from Arch User Repository.
+aur:
+  # - peaclock    # Utelita for look clock.
+  # - unimatrix   # Huckers background.
+        """
+        return default_config
+
+    def write_config(self):
+        config_path = pathlib.Path(CONFIG_YML)
+
+        if config_path.exists():
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = config_path.with_suffix(f".bak.{timestamp}")
+            shutil.copy2(config_path, backup_path)
+            print(f"{CYAN}Backup created at: {backup_path}")
+
+        with open(config_path, "w") as f:
+            f.write(self.config_here())
+
+    def handle_existing_config(self):
+        ask = (
+            input(
+                f"{YELLOW}configure file: {CONFIG_YML} {MAGENTA}now exists\n"
+                f"{CYAN}~~~ Do you want to replace? [ ( y/N ) ]\n ~> : "
             )
-            if ask.lower() in ["n", ""]:
-                print(f"\n {MAGENTA}   ~~ good ")
-            elif ask.lower() == "y":
-                self.write_configure(data)
+            .strip()
+            .lower()
+        )
+
+        match ask:
+            case "y":
+                self.write_config()
                 print(f"{YELLOW}configure file replaced successfully!")
-            else:
-                print(
-                    f" \n    {RED}~~~~~~   I don't know what the problem is        :("
-                )
+            case "n" | "":
+                print(f"\n {MAGENTA}   ~~ good ")
+            case _:
+                print(f"\n {RED}~~~~~~   I don't know what the problem is :(")
 
 
 class Aur_helper_soft:
