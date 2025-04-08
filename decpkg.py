@@ -576,11 +576,11 @@ class GenerateConfigure:
   //     ░       ░  ░░ ░               ░  ░         ░
   //   ░             ░
   //
-  //  (Copyright (c) 2025 maaru.tan \\ Marat Arzymatov. All Rights Reserved.)
+  //  (Copyright (c) 2025 maaru.tan \ Marat Arzymatov. All Rights Reserved.)
   //  https://github.com/maarutan/decpkg 
   //
   //  ------------------------------------------------
-  {
+{
   // Startup
   "logo_ascii"   : true , // there will be a logo at the beginning. 
   "absolute_sync": false, // absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
@@ -602,7 +602,7 @@ class GenerateConfigure:
   "aur_helper": "paru",  // Better aur helper utils.
 
   // other
-  "notify"    : false,   // If you want to be notified.
+  "notify"    : true    // If you want to be notified.
   },
   {
     "pacman": [
