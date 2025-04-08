@@ -26,7 +26,6 @@
 import os
 import subprocess
 from time import sleep
-import argcomplete
 import pathlib
 import argparse
 import shutil
@@ -38,33 +37,21 @@ import re
 HOME = pathlib.Path.home()
 CONFIG_DIR = f"{HOME}/.config/declarative_package"
 CONFIG_JSON = f"{CONFIG_DIR}/config.jsonc"
+HISTORY_JSON = f"{CONFIG_DIR}/.history.json"
 
 NAME = "decpkg"
 VERSION = "0.1.0"
 REQUIRES = "> 3.13.2"
 
 RESET = "\033[0m"
-BOLD = "\033[1m"
 UNDERLINE = "\033[4m"
-REVERSE = "\033[7m"
 
-BLACK = "\033[30m"
 RED = "\033[31m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
 BLUE = "\033[34m"
 MAGENTA = "\033[35m"
 CYAN = "\033[36m"
-WHITE = "\033[37m"
-
-BACK_BLACK = "\033[40m"
-BACK_RED = "\033[41m"
-BACK_GREEN = "\033[42m"
-BACK_YELLOW = "\033[43m"
-BACK_BLUE = "\033[44m"
-BACK_MAGENTA = "\033[45m"
-BACK_CYAN = "\033[46m"
-BACK_WHITE = "\033[47m"
 
 
 def main():
@@ -99,7 +86,7 @@ class DecpkgSync:
         if self.relative:
             self.relative_sync_install_pkg()
         elif self.absolute:
-            print("abs")
+            self.absolute_sync_install_pkg()
         else:
             print(
                 f"\n {YELLOW}~~~  select at least 1 installation\n option relative or absolute  :( \n"
@@ -109,7 +96,7 @@ class DecpkgSync:
             if self.check_relative_sync():
                 self.relative_sync_install_pkg()
             elif self.check_absolute_sync():
-                print("abs")
+                self.absolute_sync_install_pkg()
             else:
                 print(
                     f"\n {YELLOW}~~~  select at least 1 installation\n option relative or absolute write true is manual  :( \n"
@@ -118,6 +105,105 @@ class DecpkgSync:
 
             if self.notify:
                 subprocess.run(["notify-send", f"deckpkg Sync"])
+
+    def write_hystory_pkg(self, content) -> None:
+        with open(HISTORY_JSON, "w") as f:
+            json.dump(content, f, indent=2)
+
+    def read_hystory_pkg(self) -> list:
+        if not pathlib.Path(HISTORY_JSON).exists():
+            return []
+        with open(HISTORY_JSON, "r") as f:
+            return json.load(f)
+
+    def absolute_sync_install_pkg(self):
+        jsons = self.read_json_without_comments()
+        read_hystory_pkg = self.read_hystory_pkg()
+
+        pacman_list = jsons["packages"][0]["pacman"]
+        aurhelper_list = jsons["packages"][1]["aur"]
+        aurhelper = self.aur_helper
+        haven_list = []
+        nohaven_list = []
+
+        aur_haven_list = []
+        aur_nohaven_list = []
+
+        history_package = []
+
+        for pkg in aurhelper_list:
+            command = f"{aurhelper} -Q {pkg}"
+            result = subprocess.run(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if result.returncode == 0:
+                aur_haven_list.append(
+                    f"{CYAN} ~~>   AUR_package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                )
+                history_package.append(pkg)
+            else:
+                aur_nohaven_list.append(pkg)
+
+        for pkg in pacman_list:
+            command = f"{self.root} pacman -Q {pkg}"
+            result = subprocess.run(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if result.returncode == 0:
+                haven_list.append(
+                    f"{CYAN} ~~>   package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                )
+                history_package.append(pkg)
+            else:
+                nohaven_list.append(pkg)
+
+        for i in haven_list:
+            print(i)
+            self.notify_send(f"haven pkg list: {len(haven_list)}")
+
+        sleep(0.5)
+        for i in aur_haven_list:
+            print(i)
+            self.notify_send(f"AUR haven pkg list: {len(aur_haven_list)}", r="9998")
+        print("▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁")
+
+        for i in nohaven_list:
+            print(f" {YELLOW}PACMAN{CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
+        print()
+
+        for i in aur_nohaven_list:
+            print(f" {MAGENTA}AUR {CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
+        print()
+
+        for pkg in nohaven_list:
+            command = f"{self.root} pacman -S {pkg} {self.noconfirm}"
+            os.system(command)
+
+        for pkg in aur_nohaven_list:
+            command = f"{aurhelper} -Sa {pkg} {self.noconfirm}"
+            os.system(command)
+
+        removed_packages = set(self.read_hystory_pkg()) - set(history_package)
+        if removed_packages:
+            print(f"{RED}deleted old packages :{RESET}")
+            for pkg in removed_packages:
+                if pkg in pacman_list:
+                    command = f"{self.root} pacman -Rns {pkg} {self.noconfirm}"
+                else:
+                    command = f"{aurhelper} -Rns {pkg} {self.noconfirm}"
+                os.system(command)
+                print(f"{YELLOW}delete: {MAGENTA}{UNDERLINE}{pkg}{RESET}")
+
+        # Write the updated history
+        self.write_hystory_pkg(history_package)
 
     def state_update(self) -> bool:
         obj = UpdateSystem.__new__(UpdateSystem)
@@ -576,7 +662,7 @@ class GenerateConfigure:
   //     ░       ░  ░░ ░               ░  ░         ░
   //   ░             ░
   //
-  //  (Copyright (c) 2025 maaru.tan \ Marat Arzymatov. All Rights Reserved.)
+  //  (Copyright (c) 2025 maaru.tan \\ Marat Arzymatov. All Rights Reserved.)
   //  https://github.com/maarutan/decpkg 
   //
   //  ------------------------------------------------
@@ -827,7 +913,6 @@ if __name__ == "__main__":
         help="paru or yay for `AUR` in `deckpkg`",
     )
 
-    argcomplete.autocomplete(parser)
     args, unknown = parser.parse_known_args()
 
     try:
