@@ -245,26 +245,20 @@ class DecpkgSync:
 
         key, value = entry
 
-        # Убираем запятую и пробелы в начале и конце строки
         if isinstance(value, str):
-            value = value.strip(",")  # Убираем запятую в конце строки, если она есть
+            value = value.strip(",")
 
-            # Обработка булевых значений
             if value.lower() == "true":
                 value = True
             elif value.lower() == "false":
                 value = False
             else:
-                # Попытка преобразовать строку в число или другие типы
                 try:
-                    # Попытка преобразовать в число (int или float)
                     value = int(value) if "." not in value else float(value)
                 except ValueError:
-                    # Если это не число, пытаемся как JSON (списки, словари и т.д.)
                     try:
                         value = json.loads(value)
                     except json.JSONDecodeError:
-                        # Оставляем как строку, если не удалось преобразовать
                         pass
 
         if not pathlib.Path(CONFIG_JSON).exists():
@@ -280,13 +274,10 @@ class DecpkgSync:
             pattern = rf'^(\s*"{re.escape(key)}"\s*:\s*)(.+?)(,?)\s*$'
             match = re.match(pattern, line)
             if match:
-                # Преобразуем булевое значение обратно в строку 'true' или 'false'
                 if isinstance(value, bool):
                     new_value = "true" if value else "false"
                 else:
-                    new_value = json.dumps(
-                        value
-                    )  # Для других типов, например, строки, числа
+                    new_value = json.dumps(value)
                 line = f"{match.group(1)}{new_value}{match.group(3)}\n"
                 updated = True
             new_lines.append(line)

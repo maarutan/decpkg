@@ -15,8 +15,8 @@
   //  ------------------------------------------------
 {
   // Startup
-  "absolute_sync": false,
-  "relative_sync": true,
+  "absolute_sync": false, // absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
+  "relative_sync": true,  // Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
   "noconfirm" : true, // If that's true, then the packets will settle without confirmation.  
 
   // Updates package
