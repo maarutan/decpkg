@@ -142,7 +142,7 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 aur_haven_list.append(
-                    f"{CYAN} ~~>   AUR_package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{YELLOW} ~~>   {MAGENTA}AUR{CYAN}_package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
                 history_package.append(pkg)
             else:
@@ -159,17 +159,18 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 haven_list.append(
-                    f"{CYAN} ~~>   package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{YELLOW} ~~>  {MAGENTA}PACMAN{CYAN}_pkg {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
                 history_package.append(pkg)
             else:
                 nohaven_list.append(pkg)
 
+        print("▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁\n")
         for i in haven_list:
             print(i)
             self.notify_send(f"haven pkg list: {len(haven_list)}")
 
-        sleep(0.5)
+        print("▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁\n")
         for i in aur_haven_list:
             print(i)
             self.notify_send(f"AUR haven pkg list: {len(aur_haven_list)}", r="9998")
@@ -238,7 +239,7 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 aur_haven_list.append(
-                    f"{CYAN} ~~>   AUR_package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{CYAN} ~~>   {MAGENTA}AUR{CYAN}_pkg {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
             else:
                 aur_nohaven_list.append(pkg)
@@ -264,10 +265,10 @@ class DecpkgSync:
             self.notify_send(f"haven pkg list: {len(haven_list)}")
 
         sleep(0.5)
+
         for i in aur_haven_list:
             print(i)
             self.notify_send(f"AUR haven pkg list: {len(aur_haven_list)}", r="9998")
-        print("▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁")
 
         for i in nohaven_list:
             print(f" {YELLOW}PACMAN{CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
@@ -275,6 +276,7 @@ class DecpkgSync:
 
         for i in aur_nohaven_list:
             print(f" {MAGENTA}AUR {CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
+
         print()
 
         for pkg in nohaven_list:

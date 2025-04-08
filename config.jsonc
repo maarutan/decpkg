@@ -1,0 +1,121 @@
+  //  ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
+  //  ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
+  //  ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
+  //  ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
+  //  ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
+  //   ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
+  //   ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
+  //   ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
+  //     ░       ░  ░░ ░               ░  ░         ░
+  //   ░             ░
+  //
+  //  (Copyright (c) 2025 maaru.tan \ Marat Arzymatov. All Rights Reserved.)
+  //  https://github.com/maarutan/decpkg 
+  //
+  //  ------------------------------------------------
+{
+  // Startup
+  "logo_ascii"   : true, // there will be a logo at the beginning. 
+  "absolute_sync": true , // absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
+  "relative_sync": false, // Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
+  "noconfirm"    : true , // If that's true, then the packets will settle without confirmation.  
+
+  // Updates package
+  "update_pkg_with_install": false, // You can upgrade your system before you start installing your packages.
+  "update_counter"         : false, // If you choose to update the system before installation you can see the number of updates. 
+
+  "update_pacman" : true,  // allow pacman to be updated first  
+  "update_aur"    : true,  // allow Arch User Rep to be updated first 
+  "update_flatpak": false, // allow flatpak to be updated first
+
+  // set root
+  "use_root"  : "sudo",  // To install packages you need to have super user rights in order to install them. 
+
+  // aur 
+  "aur_helper": "paru",  // Better aur helper utils.
+
+  // other
+  "notify"    : true,   // If you want to be notified.
+  "packages": [
+    {
+      "pacman": [
+        "base",
+        "base-devel",
+        "openssh",
+        "pipewire-alsa",
+        "pipewire-pulse",
+        "nano",
+        "mpv",
+        "hyprland",
+        "git",
+        "yazi",
+        "neofetch",
+        "zsh",
+        "zoxide",
+        "z",
+        "xdg-desktop-portal-hyprland",
+        "wlr-randr",
+        "wl-clipboard",
+        "swww",
+        "ripgrep",
+        "python-argcomplete",
+        "unzip",
+        "zip",
+        "tar",
+        "ouch",
+        "figlet",
+        "feh",
+        "grim",
+        "brightnessctl",
+        "eza",
+        "firefox",
+        "exa",
+        "bc",
+        "jq",
+        "dunst",
+        "telegram-desktop",
+        "calc",
+        "waybar",
+        "fastfetch",
+        "rofi",
+        "rofi-emoji",
+        "fzf",
+        "bat",
+        "zoxide",
+        "z",
+        "udisks2",
+        "sddm",
+        "libnotify",
+        "python",
+        "btop",
+        "wget",
+        "neovim",
+        "vim",
+        "slurp",
+        "nwg-look",
+        "pavucontrol",
+        "nwg-dock-hyprland",
+        "qt6-svg",
+        "qt6-multimedia",
+        "qt6-virtualkeyboard",
+        "ttf-fira-code",
+      ]
+    },
+    {
+      "aur": [
+        "pfetch",
+        "wayvibes-git",
+        "flameshot-git",
+        "nerdfetch",
+        "ttf-apple-emoji",
+        "ttf-cascadia-code",
+        "ttf-cascadia-code-nerd",
+        "ttf-cascadia-mono-nerd",
+        "ttf-font-awesome",
+        "ttf-jetbrains-mono",
+        "ttf-jetbrains-mono-nerd",
+        "rich-cli",
+      ]
+    }
+  ]
+}
