@@ -26,18 +26,16 @@
 import os
 import subprocess
 import argcomplete
-import yaml
 import pathlib
 import argparse
 import shutil
 import json
 import datetime
-
-from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedMap
+import sys
+import re
 
 HOME = pathlib.Path.home()
-CONFIG_DIR = f"{HOME}/.config/DeclarativePackage"
+CONFIG_DIR = f"{HOME}/.config/declarative_package"
 CONFIG_JSON = f"{CONFIG_DIR}/config.jsonc"
 
 NAME = "decpkg"
@@ -85,24 +83,39 @@ class DecpkgSync:
         self.absolute = self.check_absolute_sync()
         self.root = self.root_status()
         self.noconfirm = self.set_noconfirm()
-        self.aur_helper = self.aur_helper()
+        self.aur_helper = self.get_aur_helper()
 
         if self.relative and self.absolute:
             print(
                 f"\n{YELLOW}WARN: you can't have both 'absolute_sync' and 'relative_sync' set to true"
             )
-            self.sync_handler()
+            self.sync_handler_false()
 
         if self.relative:
-            self.relative_sync_logic()
             self.relative_sync_install_pkg()
+        elif self.absolute:
+            print("abs")
+        else:
+            print(
+                f"\n {YELLOW}~~~  select at least 1 installation\n option relative or absolute  :( \n"
+            )
+            self.sync_handler_true()
+
+            if self.check_relative_sync():
+                self.relative_sync_install_pkg()
+            elif self.check_absolute_sync():
+                print("abs")
+            else:
+                print(
+                    f"\n {YELLOW}~~~  select at least 1 installation\n option relative or absolute write true is manual  :( \n"
+                )
+                return sys.exit(0)
 
     def relative_sync_install_pkg(self):
-        with open(RELATIVE_JSON, "r") as f:
-            jsons = json.load(f)
+        jsons = self.read_json_without_comments()
 
-        pacman_list = jsons[0].get("pacman", [])
-        aurhelper_list = jsons[1].get("AUR-helper", [])
+        pacman_list = jsons["packages"][0]["pacman"]
+        aurhelper_list = jsons["packages"][1]["aur"]
         aurhelper = self.aur_helper
         haven_list = []
         nohaven_list = []
@@ -145,7 +158,7 @@ class DecpkgSync:
         for i in haven_list:
             print(i)
 
-        for i in aur_nohaven_list:
+        for i in aur_haven_list:
             print(i)
 
         print("▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁")
@@ -154,7 +167,7 @@ class DecpkgSync:
             print(f" {YELLOW}PACMAN{CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
         print()
 
-        for i in aur_haven_list:
+        for i in aur_nohaven_list:
             print(f" {MAGENTA}AUR {CYAN} ~~> not found {YELLOW}{UNDERLINE}{i}{RESET}")
         print()
 
@@ -163,106 +176,151 @@ class DecpkgSync:
             os.system(command)
 
         for pkg in aur_nohaven_list:
-            command = f"{self.aur_helper()} -Syu {pkg} {self.noconfirm}"
+            command = f"{aurhelper} -Syu {pkg} {self.noconfirm}"
             os.system(command)
 
-    def aur_helper(self):
-        aur = self.read_config().get("aur_helper", [])
-        return aur
+    def get_aur_helper(self) -> str:
+        try:
+            aur = self.read_json_without_comments()
+            aur = aur.get("aur_helper", "")
+            return aur
+        except KeyError:
+            print("\n{YELLOW} ~~~>  'aur_helper' not found in config.")
+            return ""
 
     def set_noconfirm(self) -> str:
-        noconfirm = self.read_config().get("noconfirm", False)
-        noconfirm = noconfirm == True
-        return "--noconfirm" if noconfirm else ""
+        data = self.read_json_without_comments()
+        value = data.get("noconfirm", False)
+
+        if not isinstance(value, bool):
+            value = False
+        return "--noconfirm" if value else ""
 
     def root_status(self) -> str:
-        root = self.read_config().get("use_root", [])
-        return f"{root if root else print('you not have root')}"
+        json = self.read_json_without_comments()
+        json = json["use_root"]
+        return f"{json if json else print('you not have root')}"
 
-    def relative_sync_logic(self):
-        pathlib.Path(CONFIG_DIR).mkdir(exist_ok=True)
-        try:
-            pathlib.Path(RELATIVE_JSON).unlink()
-        except:
-            ""
-
-        if not pathlib.Path(RELATIVE_JSON).exists():
-            with open(RELATIVE_JSON, "w") as f:
-                default_skilet = {"pacman": [], "aur": []}
-                json.dump(default_skilet, f, indent=2)
-
-            with open(CONFIG_JSON, "r") as f:
-                content = yaml.safe_load(f)
-
-            pacman = content.get("pacman", [])
-            aur = content.get("aur", [])
-
-            relative_skilet_aur = {"aur": aur}
-            relative_skilet_pacman = {"pacman": pacman}
-
-            with open(RELATIVE_JSON, "w") as f:
-                json.dump((relative_skilet_pacman, relative_skilet_aur), f, indent=2)
-
-    def update_configure(self, data: dict):
-        yaml = YAML()
-        yaml.preserve_quotes = True
-
-        if pathlib.Path(CONFIG_JSON).exists():
-            with open(CONFIG_JSON, "r") as f:
-                existing_data = yaml.load(f) or {}
-        else:
-            existing_data = CommentedMap()
-
-        existing_data.update(data)
-
-        pathlib.Path(CONFIG_DIR).mkdir(exist_ok=True)
-
-        with open(CONFIG_JSON, "w") as f:
-            yaml.dump(existing_data, f)
-
-    def sync_handler(self):
+    def sync_handler_false(self):
         ask = input(
-            f"{MAGENTA}Choose one to turn false{RESET}\n"
-            f"-- [ 1. {YELLOW}absolute_sync{RESET}: {MAGENTA}'true'{RESET}\n"
-            f"-- [ 2. {YELLOW}relative_sync{MAGENTA}: 'true'\n"
+            f"{MAGENTA}Choose one to turn false\n"
+            f"-- [ 1. {YELLOW}relative_sync{MAGENTA}: 'true'\n"
+            f"-- [ 2. {YELLOW}absolute_sync{RESET}: {MAGENTA}'true'{RESET}\n"
             f"{CYAN}~~~~> : "
         )
-        if ask.lower() in ["1", "absolute"]:
-            config_update = {"absolute_sync": "false"}
 
-        elif ask.lower() in ["2", "relative"]:
-            config_update = {"relative_sync": "false"}
+        if ask.lower() in ["1", "relative"]:
+            config_update = ["relative_sync", "false,"]
+        elif ask.lower() in ["2", "absolute"]:
+            config_update = ["absolute_sync", "false,"]
 
         else:
             print(f"\n{RED}   ~~~   failed to record     :( ")
+            return sys.exit(0)
 
         if "config_update" in locals():
             self.update_configure(config_update)  # type: ignore
 
-    def read_config(self):  # type: ignore
-        yaml = YAML()
+    def sync_handler_true(self):
+        ask = input(
+            f"{MAGENTA}Choose one to turn true\n"
+            f"-- [ 1. {YELLOW}relative_sync{MAGENTA}: 'false'\n"
+            f"-- [ 2. {YELLOW}absolute_sync{RESET}: {MAGENTA}'false'{RESET}\n"
+            f"{CYAN}~~~~> : "
+        )
+        if ask.lower() in ["1", "relative"]:
+            config_update = ["relative_sync", "true,"]
+        elif ask.lower() in ["2", "absolute"]:
+            config_update = ["absolute_sync", "true,"]
+        else:
+            print(f"\n{RED}   ~~~   failed to record     :( ")
+            return sys.exit(0)
+
+        if "config_update" in locals():
+            self.update_configure(config_update)  # type: ignore
+
+    def update_configure(self, entry):
+        if not isinstance(entry, list) or len(entry) != 2:
+            raise ValueError("Entry must be a list of [key, value]")
+
+        key, value = entry
+
+        # Убираем запятую и пробелы в начале и конце строки
+        if isinstance(value, str):
+            value = value.strip(",")  # Убираем запятую в конце строки, если она есть
+
+            # Обработка булевых значений
+            if value.lower() == "true":
+                value = True
+            elif value.lower() == "false":
+                value = False
+            else:
+                # Попытка преобразовать строку в число или другие типы
+                try:
+                    # Попытка преобразовать в число (int или float)
+                    value = int(value) if "." not in value else float(value)
+                except ValueError:
+                    # Если это не число, пытаемся как JSON (списки, словари и т.д.)
+                    try:
+                        value = json.loads(value)
+                    except json.JSONDecodeError:
+                        # Оставляем как строку, если не удалось преобразовать
+                        pass
+
+        if not pathlib.Path(CONFIG_JSON).exists():
+            raise FileNotFoundError(f"Config file not found: {CONFIG_JSON}")
+
         with open(CONFIG_JSON, "r") as f:
-            return yaml.load(f)
+            lines = f.readlines()
 
-    def check_relative_sync(self):  # type: ignore
-        relative_sync = self.read_config().get("relative_sync", False)
-        return relative_sync == True
+        new_lines = []
+        updated = False
 
-    def check_absolute_sync(self):  # type: ignore
-        absolute_sync = self.read_config().get("absolute_sync", False)
-        return absolute_sync == True
+        for line in lines:
+            pattern = rf'^(\s*"{re.escape(key)}"\s*:\s*)(.+?)(,?)\s*$'
+            match = re.match(pattern, line)
+            if match:
+                # Преобразуем булевое значение обратно в строку 'true' или 'false'
+                if isinstance(value, bool):
+                    new_value = "true" if value else "false"
+                else:
+                    new_value = json.dumps(
+                        value
+                    )  # Для других типов, например, строки, числа
+                line = f"{match.group(1)}{new_value}{match.group(3)}\n"
+                updated = True
+            new_lines.append(line)
 
-    def read_config(self):
-        with open(CONFIG_JSON, "r") as f:
-            return yaml.safe_load(f)
+        if updated:
+            with open(CONFIG_JSON, "w") as f:
+                f.writelines(new_lines)
+            print(f"✔ Key '{key}' updated successfully.")
+        else:
+            print(f"⚠ Key '{key}' not found. No changes made.")
 
-    def check_relative_sync(self):
-        relative_sync = self.read_config().get("relative_sync", False)
-        return relative_sync == True
+    def check_relative_sync(self) -> bool:
+        data = self.read_json_without_comments()
+        value = data.get("relative_sync", False)
+        if not isinstance(value, bool):
+            value = False
+
+        return value
 
     def check_absolute_sync(self):
-        absolute_sync = self.read_config().get("absolute_sync", False)
-        return absolute_sync == True
+        data = self.read_json_without_comments()
+        value = data.get("absolute_sync", False)
+        if not isinstance(value, bool):
+            value = False
+
+        return value
+
+    def read_json_without_comments(self):
+        with open(CONFIG_JSON, "r") as f:
+            jsonc_content = f.read()
+            jsonc_content = re.sub(r"//.*", "", jsonc_content)
+            jsonc_content = re.sub(r",\s*(]|})", r"\1", jsonc_content)
+            data = json.loads(jsonc_content)
+            return data
 
 
 class GenerateConfigure:
@@ -519,14 +577,12 @@ class Version:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="declarative package manager")
     parser.add_argument("-s", "--sync", action="store_true", help="Sync `deckpkg`")
-    parser.add_argument("-r", "--remove", action="store_true", help="Remove `deckpkg`")
     parser.add_argument(
         "-v", "--version", action="store_true", help="Version `deckpkg`"
     )
     parser.add_argument(
-        "-g", "--generate", action="store_true", help="Generate `deckpkg`"
+        "-g", "--generate", action="store_true", help="Generate config `deckpkg`"
     )
-    parser.add_argument("-c", "--config", action="store_true", help="Config `deckpkg`")
     parser.add_argument(
         "-a",
         "--aur",
