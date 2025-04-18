@@ -1,10 +1,10 @@
 <h1 align="center">decpkg</h1>
 
-<table>
+<table align="center">
   <tr>
-    <td><img src=".image/logo.png" width="200"/></td>
+    <td><img src=".image/logo.png" width="400"/></td>
     <td>
-      <strong>decpkg</strong> — <a href="https://www.python.org/">python</a>script<br/>
+      <strong>decpkg</strong> — <a href="https://www.python.org/">python</a> script<br/>
       allows you to manage packages  <br/>
       declarative images following the. <br/>
       declarative programming paradigm.<br/>
