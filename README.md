@@ -4,7 +4,7 @@
   <tr>
     <td><img src=".image/logo.png" width="200"/></td>
     <td>
-      <strong>decpkg</strong> — python script <a href="https://github.com/sxyazi/yazi">https://www.python.org/</a><br/>
+      <strong>decpkg</strong> — <a href="https://www.python.org/">python</a>script<br/>
       allows you to manage packages  <br/>
       declarative images following the. <br/>
       declarative programming paradigm.<br/>
