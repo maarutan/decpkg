@@ -39,9 +39,9 @@ https://github.com/user-attachments/assets/524b5196-dd3c-4f06-93d4-de58ad5b6020
 > There, I opened `config.jsonc`, and now I can edit the configuration file.  
 > You can see an example in the video.
 
-#### Synchronization of current packages installation and uninstallation
+### Synchronization of current packages installation and uninstallation
 
-##### Absolute Synchronization
+#### Absolute Synchronization
 
 https://github.com/user-attachments/assets/79f1afd8-f6ff-4694-b386-93250556e8a5
 
@@ -53,7 +53,7 @@ https://github.com/user-attachments/assets/79f1afd8-f6ff-4694-b386-93250556e8a5
 > but **present** in the base, it will be **removed** from the system.  
 > This enforces strict alignment between the system and the declared configuration.
 
-##### Relative Synchronization
+#### Relative Synchronization
 
 > **Note:** _Relative_ synchronization mode is also available.  
 > In this mode, packages defined in the configuration will be **installed**,  
@@ -61,3 +61,28 @@ https://github.com/user-attachments/assets/79f1afd8-f6ff-4694-b386-93250556e8a5
 > such as `pacman -Rns <package>`.  
 > This mode offers a more flexible and familiar workflow for users who prefer  
 > to handle uninstalls themselves.
+
+#### Ability to install paru or yay to work with arch user repositories
+
+##### `decpkg -a`
+
+> The `-a` flag allows you to select which AUR helper to use for installing packages.  
+> You can choose between `paru` or `yay`, depending on your preference or system setup.  
+> This makes it easy to manage AUR packages with your preferred tool.
+
+#### Define your preferred AUR helper in the configuration file
+
+##### `"aur_helper": "paru",`
+
+> You can set your favorite AUR helper directly in the configuration file.  
+> Once defined, all AUR-related installations will use the following pattern:  
+> `<aur helper> -Sa <package>` — ensuring that packages are installed strictly from the AUR.  
+> This gives you full control over which tool handles your AUR operations.
+
+#### Ability to define superuser access method in the configuration file
+
+##### example: `"use_root"  : "sudo",`
+
+> In the configuration file, you can specify which tool should be used to gain superuser access —  
+> either `sudo` or `doas`.  
+> This setting ensures compatibility with your system’s preferred privilege escalation method.
