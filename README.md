@@ -16,6 +16,7 @@
 
 [~> Example](#example) <br />
 [~> Dependencies](#Dependencies) <br />
+[~> Install](#Dependencies) <br />
 
 ---
 
@@ -86,3 +87,30 @@ https://github.com/user-attachments/assets/79f1afd8-f6ff-4694-b386-93250556e8a5
 > In the configuration file, you can specify which tool should be used to gain superuser access —  
 > either `sudo` or `doas`.  
 > This setting ensures compatibility with your system’s preferred privilege escalation method.
+
+#### More configuration options
+
+> More detailed configuration options are defined directly in the config file itself.  
+> You can explore all available fields and examples by opening the configuration file:  
+> [config.jsonc](example.jsonc)
+
+## Install
+
+##### AUR
+
+```bash
+<helper> -S decpkg
+```
+
+##### Manual
+
+```
+git clone https://maarutan/decpkg.git ~/decpkg.git
+cd ~/decpkg.git
+makepkg -si
+```
+
+## License
+
+This project is licensed under the [MIT License](License)
+You are free to use, modify, and distribute this software with proper attribution.

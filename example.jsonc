@@ -1,0 +1,54 @@
+//  ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
+//  ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
+//  ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
+//  ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
+//  ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
+//   ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
+//   ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
+//   ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
+//     ░       ░  ░░ ░               ░  ░         ░
+//   ░             ░
+//
+//  (Copyright (c) 2025 maaru.tan \ Marat Arzymatov. All Rights Reserved.)
+//  https://github.com/maarutan/decpkg 
+//
+//  ------------------------------------------------
+{
+  // Startup
+  "logo_ascii"   : true , // there will be a logo at the beginning. 
+  "absolute_sync": true , // absolute installation where you clearly specify what to remove and what to install if a package is not in the list, then it will be removed. 
+  "relative_sync": false, // Relative package installation it you can determine which packages to install but not remove, If you installed through the carrier option you will have to uninstall manually. 
+  "noconfirm"    : true , // If that's true, then the packets will settle without confirmation.  
+
+  // Updates package
+  "update_pkg_with_install": false, // You can upgrade your system before you start installing your packages.
+  "update_counter"         : false, // If you choose to update the system before installation you can see the number of updates. 
+
+  "update_pacman" : true,  // allow pacman to be updated first  
+  "update_aur"    : true,  // allow Arch User Rep to be updated first 
+  "update_flatpak": false, // allow flatpak to be updated first
+
+  // set root
+  "use_root"  : "sudo",  // To install packages you need to have super user rights in order to install them. 
+
+  // aur 
+  "aur_helper": "paru",  // Better aur helper utils.
+
+  // other
+  "notify"    : true,   // If you want to be notified.
+  "packages": [
+    {
+      "pacman": [
+        // "git",          // Popular utelita for version control.
+        // "neovim"        // Best text editor.
+        ]
+    },
+    {
+      "aur": [
+        //  "peaclock",    // Utelita for look clock.
+        //  "unimatrix"    // Huckers background.
+      ]
+    }
+  ]
+}
+
