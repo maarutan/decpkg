@@ -35,7 +35,8 @@ import sys
 import re
 
 HOME = pathlib.Path.home()
-CONFIG_DIR = f"{HOME}/.config/declarative_package"
+CFG = ".config"
+CONFIG_DIR = f"{HOME}/{CFG}/declarative_package"
 CONFIG_JSON = f"{CONFIG_DIR}/config.jsonc"
 HISTORY_JSON = f"{CONFIG_DIR}/.history.json"
 
@@ -55,6 +56,7 @@ CYAN = "\033[36m"
 
 
 def main():
+    check_all_dirs()
     ascii_art()
     if args.aur:
         Aur_helper_soft()
@@ -64,6 +66,11 @@ def main():
         GenerateConfigure()
     elif args.sync:
         DecpkgSync()
+
+
+def check_all_dirs():
+    pathlib.Path(CFG).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(CONFIG_DIR).mkdir(parents=True, exist_ok=True)
 
 
 class DecpkgSync:
@@ -118,7 +125,6 @@ class DecpkgSync:
 
     def absolute_sync_install_pkg(self):
         jsons = self.read_json_without_comments()
-        read_hystory_pkg = self.read_hystory_pkg()
 
         pacman_list = jsons["packages"][0]["pacman"]
         aurhelper_list = jsons["packages"][1]["aur"]
@@ -142,7 +148,7 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 aur_haven_list.append(
-                    f"{YELLOW} ~~>   {MAGENTA}AUR{CYAN}_package {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{YELLOW} ~~>   {MAGENTA}AUR{CYAN} {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
                 history_package.append(pkg)
             else:
@@ -159,7 +165,7 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 haven_list.append(
-                    f"{YELLOW} ~~>  {MAGENTA}PACMAN{CYAN}_pkg {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{YELLOW} ~~>  {MAGENTA}PACMAN{CYAN} {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
                 history_package.append(pkg)
             else:
@@ -239,7 +245,7 @@ class DecpkgSync:
             )
             if result.returncode == 0:
                 aur_haven_list.append(
-                    f"{CYAN} ~~>   {MAGENTA}AUR{CYAN}_pkg {UNDERLINE}{pkg}{RESET}{GREEN} installed"
+                    f"{CYAN} ~~>   {MAGENTA}AUR{CYAN} {UNDERLINE}{pkg}{RESET}{GREEN} installed"
                 )
             else:
                 aur_nohaven_list.append(pkg)
@@ -375,7 +381,6 @@ class DecpkgSync:
                         value = json.loads(value)
                     except json.JSONDecodeError:
                         pass
-
         if not pathlib.Path(CONFIG_JSON).exists():
             raise FileNotFoundError(f"Config file not found: {CONFIG_JSON}")
 
@@ -431,27 +436,28 @@ class DecpkgSync:
 
 def ascii_art() -> str:
     obj = DecpkgSync.__new__(DecpkgSync)
-    aur = obj.read_json_without_comments()
-    data = aur
-    value = data.get("logo_ascii", False)
-    if not isinstance(value, bool):
-        value = False
-    if value:
-        logo = """
-▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
-▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
-░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
-░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
-░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
- ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
- ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
- ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
-   ░       ░  ░░ ░               ░  ░         ░
- ░             ░
-            """
-        return f"{print(logo)}"
-    else:
-        return ""
+    if pathlib.Path(CONFIG_JSON).exists():
+        data = obj.read_json_without_comments()
+        value = data.get("logo_ascii", False)
+        if not isinstance(value, bool):
+            value = False
+        if value:
+            logo = """
+    ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
+    ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
+    ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
+    ░▓█▄   ▌▒▓█  ▄ ▒▓▓▄ ▄██▒▒██▄█▓▒ ▒▓██ █▄ ░▓█  ██▓
+    ░▒████▓ ░▒████▒▒ ▓███▀ ░▒██▒ ░  ░▒██▒ █▄░▒▓███▀▒
+     ▒▒▓  ▒ ░░ ▒░ ░░ ░▒ ▒  ░▒▓▒░ ░  ░▒ ▒▒ ▓▒ ░▒   ▒
+     ░ ▒  ▒  ░ ░  ░  ░  ▒   ░▒ ░     ░ ░▒ ▒░  ░   ░
+     ░ ░  ░    ░   ░        ░░       ░ ░░ ░ ░ ░   ░
+       ░       ░  ░░ ░               ░  ░         ░
+     ░             ░
+                """
+            return f"{print(logo)}"
+        else:
+            return ""
+    return ""
 
 
 class UpdateSystem:
@@ -652,7 +658,7 @@ class GenerateConfigure:
             self.handle_existing_config()
 
     def config_here(self):
-        default_config = """[
+        default_config = """
   //  ▓█████▄ ▓█████  ▄████▄   ██▓███   ██ ▄█▀  ▄████
   //  ▒██▀ ██▌▓█   ▀ ▒██▀ ▀█  ▓██░  ██▒ ██▄█▒  ██▒ ▀█▒
   //  ░██   █▌▒███   ▒▓█    ▄ ▓██░ ██▓▒▓███▄░ ▒██░▄▄▄░
@@ -691,21 +697,20 @@ class GenerateConfigure:
 
   // other
   "notify"    : true    // If you want to be notified.
-  },
-  {
-    "pacman": [
-      // "git",          // Popular utelita for version control.
-      // "neovim"        // Best text editor.
-    ]
-  },
-  {
-    "aur": [
-      //  "peaclock",    // Utelita for look clock.
-      //  "unimatrix"    // Huckers background.
-    ]
-  }
-]
-        """
+},
+{
+"pacman": [
+  // "git",          // Popular utelita for version control.
+  // "neovim"        // Best text editor.
+  ]
+},
+{
+"aur": [
+  //  "peaclock",    // Utelita for look clock.
+  //  "unimatrix"    // Huckers background.
+  ]
+}
+"""
         return default_config
 
     def write_config(self):
@@ -914,7 +919,6 @@ if __name__ == "__main__":
         action="store_true",
         help="paru or yay for `AUR` in `deckpkg`",
     )
-
     args, unknown = parser.parse_known_args()
 
     try:
