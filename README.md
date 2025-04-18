@@ -30,9 +30,14 @@
 
 https://github.com/user-attachments/assets/524b5196-dd3c-4f06-93d4-de58ad5b6020
 
-> so I opened the terminal and wrote decpkg -g.
-> to generate a configuration file
-> and after the yes or no `(y/N)` prompt came up, I clicked on `n` because I already had the configuration file and then I just show you what it looks like.
+> I opened the terminal and then ran `decpkg -g` to generate the configuration file.  
+> After that, a prompt appeared asking for confirmation with a `y/n` choice. This prompt  
+> appears if a configuration file already exists, and it asks whether to overwrite the  
+> existing configuration. I pressed `n` to avoid overwriting the config.  
+> Next, I opened the file manager [yazi](https://github.com/sxyazi/yazi) and navigated to the path  
+> `~/.config/declarative_package/`.  
+> There, I opened `config.jsonc`, and now I can edit the configuration file.  
+> You can see an example in the video.
 
 #### Synchronization of current packages installation and uninstallation
 
